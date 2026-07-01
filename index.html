@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Point-Slope Form: Interactive Visualizer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX for beautiful math equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar for sidebar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(203, 213, 225, 1);
+            border-radius: 3px;
+        }
+        /* Custom drag physics cursors */
+        .drag-handle {
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .grid-line {
+            stroke: #e2e8f0;
+            stroke-width: 1;
+        }
+        .axis-line {
+            stroke: #64748b;
+            stroke-width: 2;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100">
+                <i data-lucide="line-chart" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-950">Point-Slope Form Explorer</h1>
+                <p class="text-xs text-slate-500">Master the algebraic geometry of straight lines through real-time manipulation</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs bg-slate-100 rounded-full px-3 py-1.5 border border-slate-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-slate-600 font-medium">Interactive Graph Manipulation Active</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+        
+        <!-- Left Side: Conceptual Panels & Interactive Controls (6 cols) -->
+        <div class="lg:col-span-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-1 max-h-[calc(100vh-140px)]">
+            
+            <!-- Mode / Guide Selector -->
+            <div class="bg-slate-200/60 border border-slate-300/40 rounded-xl p-1 flex gap-1 shadow-inner">
+                <button id="tab-sandbox" onclick="switchTab('sandbox')" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm">
+                    <i data-lucide="sliders" class="w-4 h-4"></i> Sandbox Mode
+                </button>
+                <button id="tab-guide" onclick="switchTab('guide')" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Guided Tour
+                </button>
+                <button id="tab-quiz" onclick="switchTab('quiz')" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50">
+                    <i data-lucide="brain-circuit" class="w-4 h-4"></i> Quiz Mode
+                </button>
+            </div>
+
+            <!-- Guided Tour Panel (Conditional) -->
+            <div id="guide-panel" class="hidden bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-md">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-lg text-indigo-600 flex items-center gap-2">
+                        <i data-lucide="navigation" class="w-5 h-5"></i>
+                        Guided Derivation
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="prevStep()" id="prev-btn" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none transition-all">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <span id="step-indicator" class="text-xs font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md flex items-center">Step 1/5</span>
+                        <button onclick="nextStep()" id="next-btn" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none transition-all">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step Descriptions -->
+                <div class="min-h-[160px] flex flex-col justify-center">
+                    <!-- Step 1 Content -->
+                    <div id="step-1-content" class="step-content space-y-2">
+                        <h4 class="text-base font-semibold text-slate-900">1. Starting with a Known Point</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            To pin down a specific line in space, we first anchor it with a known coordinate. Let's call this fixed anchor <span id="guide-p1-math"></span>.
+                        </p>
+                        <p class="text-xs text-indigo-600 font-medium bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100/50 flex items-start gap-1.5">
+                            <span>💡</span> <span>Try dragging the <strong class="text-sky-600">blue anchor node</strong> directly on the graph to change its position.</span>
+                        </p>
+                    </div>
+
+                    <!-- Step 2 Content -->
+                    <div id="step-2-content" class="step-content hidden space-y-2">
+                        <h4 class="text-base font-semibold text-slate-900">2. Establishing Slope</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Slope represents the "rise over run" of our line. By giving the line a constant slope <span id="guide-m-math"></span>, we determine how steeply it tilts away from our anchor point.
+                        </p>
+                        <p class="text-xs text-amber-600 font-medium bg-amber-50/50 p-2.5 rounded-lg border border-amber-100/50 flex items-start gap-1.5">
+                            <span>💡</span> <span>Adjust the <strong class="text-amber-600">slope slider</strong> or drag the line up and down on the visualizer.</span>
+                        </p>
+                    </div>
+
+                    <!-- Step 3 Content -->
+                    <div id="step-3-content" class="step-content hidden space-y-2">
+                        <h4 class="text-base font-semibold text-slate-900">3. Introduce an Arbitrary Point</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Now, let's pick any other variable point <span id="guide-p-math"></span> along the line. Since it represents any coordinate on the line, its values remain variable.
+                        </p>
+                        <p class="text-xs text-emerald-600 font-medium bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100/50 flex items-start gap-1.5">
+                            <span>💡</span> <span>Drag the <strong class="text-emerald-600">green variable node</strong> in any direction to dynamically rotate the line.</span>
+                        </p>
+                    </div>
+
+                    <!-- Step 4 Content -->
+                    <div id="step-4-content" class="step-content hidden space-y-2">
+                        <h4 class="text-base font-semibold text-slate-900">4. Formulating the Slope Ratio</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Because the slope <span id="guide-step-4-m"></span> between any two points on a straight line is always constant, the formula for the slope between our known anchor and floating point is:
+                        </p>
+                        <div class="py-2.5 bg-slate-50 border border-slate-200 rounded-xl flex justify-center text-md font-mono" id="math-step-4"></div>
+                    </div>
+
+                    <!-- Step 5 Content -->
+                    <div id="step-5-content" class="step-content hidden space-y-2">
+                        <h4 class="text-base font-semibold text-slate-900">5. Clearing the Fraction</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            To avoid division by zero, we multiply both sides of the slope formula by the run. This yields the elegant **Point-Slope Form**:
+                        </p>
+                        <div class="py-3 bg-indigo-50 border border-indigo-100 rounded-xl flex justify-center text-lg font-bold" id="math-step-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Panel (Conditional) -->
+            <div id="quiz-panel" class="hidden bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-md">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-lg text-indigo-600 flex items-center gap-2">
+                        <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                        Knowledge Check
+                    </h3>
+                    <div id="quiz-header-stats" class="hidden flex gap-3 text-sm font-bold text-slate-700">
+                        <span class="bg-indigo-50 border border-indigo-100 px-2 py-1 rounded">Player: <span id="quiz-player-name" class="text-indigo-600"></span></span>
+                        <span class="bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">Score: <span id="quiz-score" class="text-emerald-600">0/0</span></span>
+                    </div>
+                </div>
+
+                <!-- Setup Screen -->
+                <div id="quiz-setup" class="space-y-4 py-4 text-center">
+                    <p class="text-sm text-slate-600">Enter your name to start the challenge!</p>
+                    <input type="text" id="quiz-name-input" placeholder="Your Name" class="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-2/3 mx-auto block text-center">
+                    <button onclick="startQuiz()" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">Start Quiz</button>
+                </div>
+
+                <!-- Active Quiz Screen -->
+                <div id="quiz-active" class="hidden space-y-4">
+                    <p class="text-sm text-slate-700 font-medium">Find the Point-Slope equation for the line shown on the graph.</p>
+                    <p class="text-xs text-slate-500 mb-2 flex flex-wrap items-center gap-1">
+                        Identify the slope <span id="quiz-desc-m" class="text-indigo-600 font-bold"></span> and any valid point <span id="quiz-desc-p1" class="text-indigo-600 font-bold"></span> on the line. Enter them below to form <span id="quiz-math-hint" class="font-mono bg-slate-100 px-2 py-0.5 rounded shadow-sm text-indigo-700"></span>.
+                    </p>
+                    
+                    <div class="flex flex-wrap items-center justify-center gap-1.5 text-sm md:text-lg font-mono bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span id="quiz-eq-part1" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz-input-y1" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="y₁">
+                        <span id="quiz-eq-part2" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz-input-m" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="m">
+                        <span id="quiz-eq-part3" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz-input-x1" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="x₁">
+                        <span id="quiz-eq-part4" class="font-bold text-slate-800"></span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-4">
+                        <div id="quiz-feedback" class="text-sm font-bold flex-1 pr-2"></div>
+                        <button id="quiz-submit-btn" onclick="submitQuiz()" class="whitespace-nowrap px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition">Check Answer</button>
+                        <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="hidden whitespace-nowrap px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">Next Line</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Interactive Controls Sandbox -->
+            <div id="sandbox-controls" class="bg-white border border-slate-200 rounded-2xl p-5 space-y-5 shadow-md">
+                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+                    <i data-lucide="sliders-horizontal" class="text-indigo-500"></i> Parameters & Slide Controls
+                </h3>
+
+                <!-- Parameter Sliders -->
+                <div class="space-y-4">
+                    <!-- Anchor X -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <label class="text-sky-600 font-semibold flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> <span id="lbl-math-x1"></span>
+                            </label>
+                            <span class="font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded" id="val-x1">2.0</span>
+                        </div>
+                        <input id="slider-x1" type="range" min="-8" max="8" step="1" value="2" 
+                               class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500 focus:outline-none">
+                    </div>
+
+                    <!-- Anchor Y -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <label class="text-sky-600 font-semibold flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> <span id="lbl-math-y1"></span>
+                            </label>
+                            <span class="font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded" id="val-y1">3.0</span>
+                        </div>
+                        <input id="slider-y1" type="range" min="-8" max="8" step="1" value="3" 
+                               class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500 focus:outline-none">
+                    </div>
+
+                    <!-- Slope m -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <label class="text-amber-500 font-semibold flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> <span id="lbl-math-m"></span>
+                            </label>
+                            <span class="font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded" id="val-slope">1.0</span>
+                        </div>
+                        <div class="flex gap-3 items-center">
+                            <input id="slider-slope" type="range" min="-10" max="10" step="0.1" value="1" 
+                                   class="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500 focus:outline-none">
+                            <div class="flex gap-1">
+                                <button onclick="setSlope(-1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-xs text-slate-700 transition font-mono">-1</button>
+                                <button onclick="setSlope(0)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-xs text-slate-700 transition font-mono">0</button>
+                                <button onclick="setSlope(1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-xs text-slate-700 transition font-mono">+1</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Snap to Grid -->
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                        <label for="snap-toggle" class="text-sm text-slate-600 flex items-center gap-2 cursor-pointer select-none">
+                            <i data-lucide="magnet" class="w-4 h-4 text-indigo-500"></i> Snap coordinates to integers
+                        </label>
+                        <input type="checkbox" id="snap-toggle" checked class="w-4 h-4 text-indigo-600 bg-slate-100 border-slate-300 rounded focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Equation Conversions -->
+            <div id="equations-panel" class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-md">
+                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                    <i data-lucide="calculator" class="text-indigo-500"></i> Equations Panel
+                </h3>
+                
+                <div class="space-y-3">
+                    <!-- Point-Slope Form Card -->
+                    <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100 shadow-sm">
+                        <div class="text-[10px] tracking-wider font-extrabold text-indigo-600 mb-1 flex justify-between items-center">
+                            <span>POINT-SLOPE FORM</span>
+                            <span id="formula-pt-slope-def" class="text-indigo-500 font-bold"></span>
+                        </div>
+                        <div id="equation-point-slope" class="text-lg md:text-xl font-bold tracking-wide text-indigo-950 py-1 text-center"></div>
+                    </div>
+
+                    <!-- Slope-Intercept Card -->
+                    <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-100 shadow-xs">
+                        <div class="text-[10px] tracking-wider font-extrabold text-amber-700 mb-1 flex justify-between">
+                            <span>SLOPE-INTERCEPT</span>
+                            <span id="formula-slope-int-def"></span>
+                        </div>
+                        <div id="equation-slope-intercept" class="text-sm font-bold text-amber-950 mt-1"></div>
+                    </div>
+                    
+                    <!-- General Form Card -->
+                    <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 shadow-xs">
+                        <div class="text-[10px] tracking-wider font-extrabold text-emerald-700 mb-1 flex justify-between">
+                            <span>GENERAL FORM</span>
+                            <span id="formula-general-def"></span>
+                        </div>
+                        <div id="equation-general" class="text-sm font-bold text-emerald-950 mt-1"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Side: Graphic Coordinate System (6 cols) -->
+        <div class="lg:col-span-6 flex flex-col gap-4">
+            
+            <!-- Graph Visualization Box -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col flex-1 shadow-md relative min-h-[480px]">
+                
+                <!-- Visualization Metadata Header -->
+                <div id="graph-metadata-header" class="flex flex-wrap justify-between items-center gap-3 mb-3 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                    <div class="flex gap-4">
+                        <div class="flex items-center gap-1.5 text-xs text-sky-700 font-semibold">
+                            <span class="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>
+                            <span>Anchor point: <span id="label-math-p1"></span></span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span>Variable point: <span id="label-math-p"></span></span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-amber-700 font-bold flex items-center gap-1">
+                        <i data-lucide="activity" class="w-3.5 h-3.5 text-amber-500"></i>
+                        <span>Slope: <span id="label-math-slope-val"></span></span>
+                    </div>
+                </div>
+
+                <!-- SVG Interactive Plot -->
+                <div class="flex-1 w-full bg-slate-50 rounded-xl relative overflow-hidden border border-slate-200/60 shadow-inner flex items-center justify-center">
+                    <svg id="coordinate-system" class="w-full h-full max-h-[600px] select-none touch-none" viewBox="0 0 500 500">
+                        <!-- Grid pattern definition -->
+                        <defs>
+                            <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+                                <path d="M 25 0 L 0 0 0 25" fill="none" stroke="#e2e8f0" stroke-width="0.8"/>
+                            </pattern>
+                        </defs>
+                        <!-- Background Grid -->
+                        <rect width="100%" height="100%" fill="#f8fafc" />
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+
+                        <!-- Major Grid Axes Lines (Subdivisions) -->
+                        <g id="grid-subdivisions"></g>
+
+                        <!-- Main Axes -->
+                        <line id="axis-y" x1="250" y1="0" x2="250" y2="500" class="axis-line" stroke="#64748b" />
+                        <line id="axis-x" x1="0" y1="250" x2="500" y2="250" class="axis-line" stroke="#64748b" />
+
+                        <!-- Grid Ticks & Numbers -->
+                        <g id="grid-labels" class="text-[12px] fill-slate-500 font-semibold font-mono" pointer-events="none"></g>
+
+                        <!-- The Animated/Interacted Line -->
+                        <line id="math-line" x1="0" y1="250" x2="500" y2="250" stroke="#4f46e5" stroke-width="4.5" stroke-linecap="round" />
+
+                        <!-- Triangle Projection: Showing Rise and Run -->
+                        <g id="slope-triangle">
+                            <!-- Run (Horizontal projection) -->
+                            <line id="triangle-run" x1="0" y1="0" x2="0" y2="0" stroke="#059669" stroke-width="2.5" stroke-dasharray="5 4" />
+                            <!-- Rise (Vertical projection) -->
+                            <line id="triangle-rise" x1="0" y1="0" x2="0" y2="0" stroke="#d97706" stroke-width="2.5" stroke-dasharray="5 4" />
+                        </g>
+
+                        <!-- Anchor Point (x1, y1) - Sky Blue -->
+                        <g id="anchor-group" class="drag-handle">
+                            <circle id="anchor-point" cx="250" cy="250" r="10" fill="#0284c7" stroke="#ffffff" stroke-width="2.5" />
+                            <foreignObject id="anchor-math-label" width="160" height="45" pointer-events="none">
+                                <div id="math-anchor-text" class="text-[14px] text-sky-700 font-semibold bg-white/95 border border-sky-100 rounded-md px-1.5 py-0.5 shadow-sm text-center"></div>
+                            </foreignObject>
+                        </g>
+
+                        <!-- Variable Point (x, y) - Green -->
+                        <g id="variable-group" class="drag-handle">
+                            <circle id="variable-point" cx="300" cy="200" r="10" fill="#10b981" stroke="#ffffff" stroke-width="2.5" />
+                            <foreignObject id="variable-math-label" width="160" height="45" pointer-events="none">
+                                <div id="math-variable-text" class="text-[14px] text-emerald-700 font-semibold bg-white/95 border border-emerald-100 rounded-md px-1.5 py-0.5 shadow-sm text-center"></div>
+                            </foreignObject>
+                        </g>
+                    </svg>
+
+                    <!-- Triangle labels overlay (HTML for KaTeX rendering) -->
+                    <div id="overlay-run" class="absolute bg-white/95 border border-emerald-200 text-emerald-700 px-2 py-1 rounded-md text-[14px] font-semibold pointer-events-none shadow-sm"></div>
+                    <div id="overlay-rise" class="absolute bg-white/95 border border-amber-200 text-amber-700 px-2 py-1 rounded-md text-[14px] font-semibold pointer-events-none shadow-sm"></div>
+                </div>
+
+                <!-- Graph Legend -->
+                <div class="mt-3 text-xs text-slate-500 flex flex-wrap gap-4 items-center justify-center border-t border-slate-100 pt-3">
+                    <span class="flex items-center gap-1.5 font-semibold text-slate-600">
+                        <span class="w-3.5 h-1 bg-indigo-500 inline-block rounded"></span> Line Form
+                    </span>
+                    <span class="flex items-center gap-1.5 text-emerald-700 font-bold" id="legend-run-text"></span>
+                    <span class="flex items-center gap-1.5 text-amber-700 font-bold" id="legend-rise-text"></span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white py-3 text-center text-xs text-slate-400 font-medium">
+        Strict vector pointer snapping implemented. Drag points anywhere in the layout safely.
+    </footer>
+
+    <!-- Core Interactive Logic Script -->
+    <script>
+        // App State
+        let state = {
+            activeTab: 'sandbox',
+            currentStep: 1,
+            maxSteps: 5,
+            x1: 2,
+            y1: 3,
+            m: 1.0,
+            x: 6,
+            y: 7, // calculated based on x and m, or dragged dynamically
+            snapToGrid: true,
+            isDraggingAnchor: false,
+            isDraggingVariable: false,
+            quizName: '',
+            quizScore: 0,
+            quizAttempted: 0,
+            quizActive: false
+        };
+
+        // Graph Math Settings
+        const svgSize = 500;
+        const gridRange = 10; // -10 to +10
+
+        // SVG Mapping Coordinates functions
+        function toSvgX(mathX) {
+            return (mathX + gridRange) * (svgSize / (gridRange * 2));
+        }
+
+        function toSvgY(mathY) {
+            return (gridRange - mathY) * (svgSize / (gridRange * 2));
+        }
+
+        function toMathX(svgX) {
+            return (svgX / (svgSize / (gridRange * 2))) - gridRange;
+        }
+
+        function toMathY(svgY) {
+            return gridRange - (svgY / (svgSize / (gridRange * 2)));
+        }
+
+        // Initialize App UI and SVG
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            generateGridSubdivisions();
+            generateGridLabels();
+            setupEventListeners();
+            setupKeyboardListeners();
+            syncSlidersWithState();
+            renderStaticMath();
+            update();
+        });
+        
+        // Setup Keyboard Input Listeners (Enter key support)
+        function setupKeyboardListeners() {
+            // Setup quiz name submit
+            const nameInput = document.getElementById('quiz-name-input');
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') startQuiz();
+            });
+
+            // Setup equation input submit
+            const quizInputs = ['quiz-input-y1', 'quiz-input-m', 'quiz-input-x1'];
+            quizInputs.forEach(id => {
+                document.getElementById(id).addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        if (!document.getElementById('quiz-submit-btn').classList.contains('hidden')) {
+                            submitQuiz();
+                        }
+                    }
+                });
+            });
+            
+            // Advance to next question quickly with enter when feedback is showing
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && state.activeTab === 'quiz' && state.quizActive) {
+                    const nextBtn = document.getElementById('quiz-next-btn');
+                    if (!nextBtn.classList.contains('hidden')) {
+                        nextQuizQuestion();
+                    }
+                }
+            });
+        }
+
+        // Setup Static KaTeX Formulas
+        function renderStaticMath() {
+            katex.render("x_1", document.getElementById('lbl-math-x1'), { throwOnError: false });
+            katex.render("y_1", document.getElementById('lbl-math-y1'), { throwOnError: false });
+            katex.render("m", document.getElementById('lbl-math-m'), { throwOnError: false });
+
+            katex.render("y - y_1 = m(x - x_1)", document.getElementById('formula-pt-slope-def'), { throwOnError: false });
+            katex.render("y = mx + c", document.getElementById('formula-slope-int-def'), { throwOnError: false });
+            katex.render("Ax + By + C = 0", document.getElementById('formula-general-def'), { throwOnError: false });
+
+            katex.render("P_1(x_1, y_1)", document.getElementById('guide-p1-math'), { throwOnError: false });
+            katex.render("m", document.getElementById('guide-m-math'), { throwOnError: false });
+            katex.render("P(x, y)", document.getElementById('guide-p-math'), { throwOnError: false });
+            katex.render("m", document.getElementById('guide-step-4-m'), { throwOnError: false });
+            
+            // Quiz Static Formulas
+            katex.render("m", document.getElementById('quiz-desc-m'), { throwOnError: false });
+            katex.render("(x_1, y_1)", document.getElementById('quiz-desc-p1'), { throwOnError: false });
+            katex.render("y - y_1 = m(x - x_1)", document.getElementById('quiz-math-hint'), { throwOnError: false });
+            
+            katex.render("y - (", document.getElementById('quiz-eq-part1'), { throwOnError: false });
+            katex.render(") = (", document.getElementById('quiz-eq-part2'), { throwOnError: false });
+            katex.render(") (x - (", document.getElementById('quiz-eq-part3'), { throwOnError: false });
+            katex.render("))", document.getElementById('quiz-eq-part4'), { throwOnError: false });
+
+            // Legends
+            katex.render("\\text{Run: } \\Delta x = x - x_1", document.getElementById('legend-run-text'), { throwOnError: false });
+            katex.render("\\text{Rise: } \\Delta y = y - y_1", document.getElementById('legend-rise-text'), { throwOnError: false });
+        }
+
+        // Generate custom sub-grid lines
+        function generateGridSubdivisions() {
+            const gridContainer = document.getElementById('grid-subdivisions');
+            gridContainer.innerHTML = '';
+            for (let i = -gridRange; i <= gridRange; i++) {
+                if (i === 0) continue; // main axes handled separately
+                const sX = toSvgX(i);
+                const sY = toSvgY(i);
+                
+                // Vertical gridline
+                const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                vLine.setAttribute("x1", sX);
+                vLine.setAttribute("y1", 0);
+                vLine.setAttribute("x2", sX);
+                vLine.setAttribute("y2", svgSize);
+                vLine.setAttribute("class", "grid-line");
+                gridContainer.appendChild(vLine);
+
+                // Horizontal gridline
+                const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                hLine.setAttribute("x1", 0);
+                hLine.setAttribute("y1", sY);
+                hLine.setAttribute("x2", svgSize);
+                hLine.setAttribute("y2", sY);
+                hLine.setAttribute("class", "grid-line");
+                gridContainer.appendChild(hLine);
+            }
+        }
+
+        // Generate visual axis numbers (-10 to 10)
+        function generateGridLabels() {
+            const labelContainer = document.getElementById('grid-labels');
+            labelContainer.innerHTML = '';
+            for (let i = -gridRange; i <= gridRange; i++) {
+                if (i === 0) continue;
+                
+                // X axis labels
+                const xText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                xText.setAttribute("x", toSvgX(i) - 4);
+                xText.setAttribute("y", toSvgY(0) + 15);
+                xText.textContent = i;
+                labelContainer.appendChild(xText);
+
+                // Y axis labels
+                const yText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                yText.setAttribute("x", toSvgX(0) + 8);
+                yText.setAttribute("y", toSvgY(i) + 4);
+                yText.textContent = i;
+                labelContainer.appendChild(yText);
+            }
+        }
+
+        // Handle tabs transitions
+        function switchTab(tabId) {
+            state.activeTab = tabId;
+            const sandboxBtn = document.getElementById('tab-sandbox');
+            const guideBtn = document.getElementById('tab-guide');
+            const quizBtn = document.getElementById('tab-quiz');
+            
+            const guidePanel = document.getElementById('guide-panel');
+            const quizPanel = document.getElementById('quiz-panel');
+            const sandboxControls = document.getElementById('sandbox-controls');
+            const equationsPanel = document.getElementById('equations-panel');
+            const metadataHeader = document.getElementById('graph-metadata-header');
+
+            const inactiveClass = "flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50";
+            const activeClass = "flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm";
+
+            sandboxBtn.className = inactiveClass;
+            guideBtn.className = inactiveClass;
+            quizBtn.className = inactiveClass;
+            
+            guidePanel.classList.add('hidden');
+            quizPanel.classList.add('hidden');
+            sandboxControls.classList.remove('hidden');
+            equationsPanel.classList.remove('hidden');
+            metadataHeader.classList.remove('hidden');
+
+            if (tabId === 'sandbox') {
+                sandboxBtn.className = activeClass;
+                
+                // Default clean positions for sandbox mode
+                state.x1 = 2;
+                state.y1 = 3;
+                state.m = 1.0;
+                state.x = 6;
+                state.y = 7;
+            } else if (tabId === 'guide') {
+                guideBtn.className = activeClass;
+                guidePanel.classList.remove('hidden');
+                setStep(1);
+            } else if (tabId === 'quiz') {
+                quizBtn.className = activeClass;
+                quizPanel.classList.remove('hidden');
+                sandboxControls.classList.add('hidden');
+                equationsPanel.classList.add('hidden');
+                metadataHeader.classList.add('hidden');
+                
+                if (!state.quizActive) {
+                    document.getElementById('quiz-setup').classList.remove('hidden');
+                    document.getElementById('quiz-active').classList.add('hidden');
+                    document.getElementById('quiz-header-stats').classList.add('hidden');
+                    // Autofocus the name field
+                    setTimeout(() => document.getElementById('quiz-name-input').focus(), 100);
+                }
+            }
+            syncSlidersWithState();
+            update();
+        }
+
+        // Set Step index in Guided Mode
+        function setStep(step) {
+            state.currentStep = Math.max(1, Math.min(state.maxSteps, step));
+            document.getElementById('step-indicator').textContent = `Step ${state.currentStep}/${state.maxSteps}`;
+            
+            // Toggle step content
+            document.querySelectorAll('.step-content').forEach((el, index) => {
+                if (index + 1 === state.currentStep) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+
+            // Enable/disable navigation buttons
+            document.getElementById('prev-btn').disabled = state.currentStep === 1;
+            document.getElementById('next-btn').disabled = state.currentStep === state.maxSteps;
+
+            // Step setup variables
+            switch (state.currentStep) {
+                case 1: // Focus on P1
+                    state.x1 = 2; state.y1 = 3; state.m = 1.0;
+                    state.x = 2; state.y = 3; 
+                    break;
+                case 2: // Focus on Slope m
+                    state.x1 = 2; state.y1 = 3; state.m = 1.5;
+                    state.x = 2; state.y = 3; 
+                    break;
+                case 3: // Show general point P(x,y)
+                    state.x1 = 2; state.y1 = 3; state.m = 1.5;
+                    state.x = 6; state.y = 9;
+                    break;
+                case 4: // Formulate Slope Ratio
+                    state.x1 = 2; state.y1 = 3; state.m = 1.5;
+                    state.x = 6; state.y = 9;
+                    break;
+                case 5: // Point Slope form finalized
+                    state.x1 = 2; state.y1 = 3; state.m = 1.5;
+                    state.x = 6; state.y = 9;
+                    break;
+            }
+
+            syncSlidersWithState();
+            update();
+        }
+
+        function nextStep() {
+            setStep(state.currentStep + 1);
+        }
+
+        function prevStep() {
+            setStep(state.currentStep - 1);
+        }
+
+        // Setup Sliders & Checkbox Interactions
+        function setupEventListeners() {
+            const sliderX1 = document.getElementById('slider-x1');
+            const sliderY1 = document.getElementById('slider-y1');
+            const sliderSlope = document.getElementById('slider-slope');
+            const snapToggle = document.getElementById('snap-toggle');
+
+            sliderX1.addEventListener('input', (e) => {
+                state.x1 = parseFloat(e.target.value);
+                // Keep x strictly stationary, only update y to stay on the line
+                state.y = state.y1 + (state.m * (state.x - state.x1));
+                update();
+            });
+
+            sliderY1.addEventListener('input', (e) => {
+                state.y1 = parseFloat(e.target.value);
+                // Keep x strictly stationary, only update y to stay on the line
+                state.y = state.y1 + (state.m * (state.x - state.x1));
+                update();
+            });
+
+            sliderSlope.addEventListener('input', (e) => {
+                state.m = parseFloat(e.target.value);
+                // Adjust variable coordinate to match the updated slope slope-intercept formula
+                state.y = state.y1 + (state.m * (state.x - state.x1));
+                update();
+            });
+
+            snapToggle.addEventListener('change', (e) => {
+                state.snapToGrid = e.target.checked;
+                if (state.snapToGrid) {
+                    state.x1 = Math.round(state.x1);
+                    state.y1 = Math.round(state.y1);
+                    state.x = Math.round(state.x);
+                    state.y = Math.round(state.y);
+                    
+                    const run = state.x - state.x1;
+                    if (run !== 0) {
+                        state.m = (state.y - state.y1) / run;
+                    }
+                    state.m = Math.max(-10, Math.min(10, Math.round(state.m * 10) / 10));
+                    syncSlidersWithState();
+                    update();
+                }
+            });
+
+            // Drag operations for SVG Nodes
+            const svg = document.getElementById('coordinate-system');
+            const anchorGroup = document.getElementById('anchor-group');
+            const variableGroup = document.getElementById('variable-group');
+
+            // Pointer Event Handlers
+            anchorGroup.addEventListener('pointerdown', (e) => {
+                if (state.activeTab === 'quiz') return;
+                e.stopPropagation();
+                state.isDraggingAnchor = true;
+                anchorGroup.setPointerCapture(e.pointerId);
+            });
+
+            variableGroup.addEventListener('pointerdown', (e) => {
+                if (state.activeTab === 'quiz') return;
+                e.stopPropagation();
+                state.isDraggingVariable = true;
+                variableGroup.setPointerCapture(e.pointerId);
+            });
+
+            svg.addEventListener('pointermove', (e) => {
+                if (state.activeTab === 'quiz') return;
+                if (!state.isDraggingAnchor && !state.isDraggingVariable) return;
+                
+                const rect = svg.getBoundingClientRect();
+                const rawX = e.clientX - rect.left;
+                const rawY = e.clientY - rect.top;
+
+                // Scale relative to viewBox coordinate boundary (500x500)
+                const relativeX = (rawX / rect.width) * svgSize;
+                const relativeY = (rawY / rect.height) * svgSize;
+
+                let mathX = toMathX(relativeX);
+                let mathY = toMathY(relativeY);
+
+                // Clamp vector inside grid boundary
+                mathX = Math.max(-gridRange + 1, Math.min(gridRange - 1, mathX));
+                mathY = Math.max(-gridRange + 1, Math.min(gridRange - 1, mathY));
+
+                if (state.snapToGrid) {
+                    mathX = Math.round(mathX);
+                    mathY = Math.round(mathY);
+                }
+
+                if (state.isDraggingAnchor) {
+                    state.x1 = mathX;
+                    state.y1 = mathY;
+
+                    // Update variable node's y to keep it strictly on the translated line at its current x
+                    state.y = state.y1 + (state.m * (state.x - state.x1));
+                } else if (state.isDraggingVariable) {
+                    // Prevent perfect node overlap to ensure run != 0
+                    if (mathX === state.x1 && mathY === state.y1) {
+                        mathX = state.x1 + 1;
+                    }
+                    state.x = mathX;
+                    state.y = mathY;
+
+                    // Recalculate slope strictly from dragging coordinates
+                    const run = state.x - state.x1;
+                    const rise = state.y - state.y1;
+                    if (run !== 0) {
+                        state.m = rise / run;
+                    } else {
+                        state.x = state.x1 + 0.1;
+                        state.m = (state.y - state.y1) / 0.1;
+                    }
+                    
+                    // Clamp to slider bounds
+                    state.m = Math.max(-10, Math.min(10, state.m));
+                    if (state.snapToGrid) {
+                        state.m = Math.round(state.m * 10) / 10;
+                    }
+                }
+
+                syncSlidersWithState();
+                update();
+            });
+
+            const endDrag = (e) => {
+                state.isDraggingAnchor = false;
+                state.isDraggingVariable = false;
+            };
+
+            svg.addEventListener('pointerup', endDrag);
+            svg.addEventListener('pointercancel', endDrag);
+        }
+        
+        // --- QUIZ LOGIC ---
+        const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztY-Z1ZlZUzhZanRVbXpqIZLUlf0_xkEP208aJd0D0BY13eIY4bUeWjf6q_BT2BXU/exec"; 
+
+        async function syncQuizData(name, score, attempted) {
+            if (!GOOGLE_APPS_SCRIPT_URL) return; // Skip if URL is not configured
+            
+            try {
+                await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    // Using text/plain prevents complex CORS preflight issues while passing the JSON string safely
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        name: name,
+                        score: score,
+                        attempted: attempted
+                    })
+                });
+            } catch (error) {
+                console.error("Error syncing quiz data:", error);
+            }
+        }
+
+        function startQuiz() {
+            const nameInput = document.getElementById('quiz-name-input').value.trim();
+            if (!nameInput) {
+                let setupFeedback = document.getElementById('quiz-setup-feedback');
+                if (!setupFeedback) {
+                    setupFeedback = document.createElement('div');
+                    setupFeedback.id = 'quiz-setup-feedback';
+                    setupFeedback.className = 'text-red-500 text-sm mt-2 font-medium';
+                    document.getElementById('quiz-setup').appendChild(setupFeedback);
+                }
+                setupFeedback.textContent = 'Please enter a name to start.';
+                return;
+            }
+            
+            const setupFeedback = document.getElementById('quiz-setup-feedback');
+            if (setupFeedback) setupFeedback.remove();
+
+            state.quizName = nameInput;
+            state.quizScore = 0;
+            state.quizAttempted = 0;
+            state.quizActive = true;
+            
+            document.getElementById('quiz-player-name').textContent = state.quizName;
+            document.getElementById('quiz-score').textContent = `${state.quizScore}/${state.quizAttempted}`;
+            
+            document.getElementById('quiz-setup').classList.add('hidden');
+            document.getElementById('quiz-active').classList.remove('hidden');
+            document.getElementById('quiz-header-stats').classList.remove('hidden');
+            
+            nextQuizQuestion();
+        }
+
+        function nextQuizQuestion() {
+            const slopes = [-3, -2, -1, -0.5, 0.5, 1, 2, 3];
+            state.m = slopes[Math.floor(Math.random() * slopes.length)];
+            state.x1 = Math.floor(Math.random() * 10) - 5;
+            state.y1 = Math.floor(Math.random() * 10) - 5;
+            
+            state.x = state.x1 + 2;
+            state.y = state.y1 + (state.m * 2);
+            
+            document.getElementById('quiz-input-m').value = '';
+            document.getElementById('quiz-input-x1').value = '';
+            document.getElementById('quiz-input-y1').value = '';
+            document.getElementById('quiz-feedback').innerHTML = '';
+            document.getElementById('quiz-submit-btn').classList.remove('hidden');
+            document.getElementById('quiz-next-btn').classList.add('hidden');
+            
+            // Autofocus the first answer box
+            setTimeout(() => document.getElementById('quiz-input-y1').focus(), 100);
+            
+            update();
+        }
+
+        function submitQuiz() {
+            const mInput = parseFloat(document.getElementById('quiz-input-m').value);
+            const x1Input = parseFloat(document.getElementById('quiz-input-x1').value);
+            const y1Input = parseFloat(document.getElementById('quiz-input-y1').value);
+            
+            if (isNaN(mInput) || isNaN(x1Input) || isNaN(y1Input)) {
+                document.getElementById('quiz-feedback').innerHTML = '<span class="text-amber-600">Please fill in all 3 blanks!</span>';
+                return;
+            }
+            
+            state.quizAttempted += 1;
+            
+            const slopeCorrect = Math.abs(mInput - state.m) < 0.001;
+            // The chosen point (x1, y1) is correct if it belongs to the target line
+            const pointOnLine = Math.abs((y1Input - state.y1) - (state.m * (x1Input - state.x1))) < 0.001;
+            
+            if (slopeCorrect && pointOnLine) {
+                state.quizScore += 1;
+                document.getElementById('quiz-score').textContent = `${state.quizScore}/${state.quizAttempted}`;
+                document.getElementById('quiz-feedback').innerHTML = '🎉 <span class="text-emerald-600">Correct! Next question in 3s...</span>';
+                
+                document.getElementById('quiz-submit-btn').classList.add('hidden');
+                document.getElementById('quiz-next-btn').classList.add('hidden');
+                
+                // Sync successful attempt to Google Sheets
+                syncQuizData(state.quizName, state.quizScore, state.quizAttempted);
+
+                // Automatically advance after 3 seconds
+                setTimeout(() => {
+                    if (state.activeTab === 'quiz' && state.quizActive) {
+                        nextQuizQuestion();
+                    }
+                }, 3000);
+            } else {
+                document.getElementById('quiz-score').textContent = `${state.quizScore}/${state.quizAttempted}`;
+                const correctEqLatex = `y - (${fmt(state.y1)}) = ${fmt(state.m)}(x - (${fmt(state.x1)}))`;
+                const ansLatex = katex.renderToString(correctEqLatex, { throwOnError: false });
+                
+                let errorMsg = `❌ <span class="text-red-600">Incorrect. A valid answer is:</span><br/><span class="inline-block mt-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded font-normal shadow-sm">${ansLatex}</span>`;
+                document.getElementById('quiz-feedback').innerHTML = errorMsg;
+                
+                document.getElementById('quiz-submit-btn').classList.add('hidden');
+                document.getElementById('quiz-next-btn').classList.remove('hidden');
+
+                // Sync failed attempt to Google Sheets
+                syncQuizData(state.quizName, state.quizScore, state.quizAttempted);
+            }
+        }
+        // --- END QUIZ LOGIC ---
+
+        function setSlope(val) {
+            state.m = val;
+            state.y = state.y1 + (state.m * (state.x - state.x1));
+            syncSlidersWithState();
+            update();
+        }
+
+        function syncSlidersWithState() {
+            document.getElementById('slider-x1').value = state.x1;
+            document.getElementById('slider-y1').value = state.y1;
+            document.getElementById('slider-slope').value = state.m;
+            
+            document.getElementById('val-x1').textContent = state.x1.toFixed(1);
+            document.getElementById('val-y1').textContent = state.y1.toFixed(1);
+            document.getElementById('val-slope').textContent = state.m.toFixed(1);
+        }
+
+        // Formats numbers cleanly into integers or single-point decimals
+        function fmt(num, decimals = 1) {
+            const val = parseFloat(num.toFixed(decimals));
+            return Number.isInteger(val) ? val.toString() : val.toFixed(decimals);
+        }
+
+        // Primary Rendering / Update Loop
+        function update() {
+            const gridLimit = 15; // Extrapolate lines smoothly beyond boundaries
+            
+            // 1. Plot Main Line (y - y1 = m(x - x1))
+            const line = document.getElementById('math-line');
+            const yAtMinX = state.y1 + (state.m * (-gridLimit - state.x1));
+            const yAtMaxX = state.y1 + (state.m * (gridLimit - state.x1));
+
+            line.setAttribute("x1", toSvgX(-gridLimit));
+            line.setAttribute("y1", toSvgY(yAtMinX));
+            line.setAttribute("x2", toSvgX(gridLimit));
+            line.setAttribute("y2", toSvgY(yAtMaxX));
+
+            // 2. Position Anchor Node P1 (x1, y1)
+            const anchorPoint = document.getElementById('anchor-point');
+            const anchorMathLabel = document.getElementById('anchor-math-label');
+            const sX1 = toSvgX(state.x1);
+            const sY1 = toSvgY(state.y1);
+            
+            // Calculate Variable coordinates here simultaneously for spatial layout awareness
+            const sX = toSvgX(state.x);
+            const sY = toSvgY(state.y);
+            
+            anchorPoint.setAttribute("cx", sX1);
+            anchorPoint.setAttribute("cy", sY1);
+            
+            const labelWidth = 160;
+            const labelHeight = 45;
+            
+            // Push away from the triangle and line by analyzing relative quadrants
+            let aX = sX >= sX1 ? sX1 - labelWidth - 15 : sX1 + 15;
+            let aY = sY >= sY1 ? sY1 - labelHeight - 15 : sY1 + 15;
+            
+            // Clamp within SVG boundaries
+            aX = Math.max(5, Math.min(svgSize - labelWidth - 5, aX));
+            aY = Math.max(5, Math.min(svgSize - labelHeight - 5, aY));
+            
+            anchorMathLabel.setAttribute("x", aX);
+            anchorMathLabel.setAttribute("y", aY);
+
+            // Render LaTeX coordinate in visual tooltip
+            katex.render(`P_1(${fmt(state.x1)}, ${fmt(state.y1)})`, document.getElementById('math-anchor-text'), { throwOnError: false });
+            katex.render(`P_1(${fmt(state.x1)}, ${fmt(state.y1)})`, document.getElementById('label-math-p1'), { throwOnError: false });
+
+            // 3. Position Variable Node P(x, y)
+            const variablePoint = document.getElementById('variable-point');
+            const variableMathLabel = document.getElementById('variable-math-label');
+            const slopeTriangle = document.getElementById('slope-triangle');
+            const overlayRun = document.getElementById('overlay-run');
+            const overlayRise = document.getElementById('overlay-rise');
+
+            // Handle visibility for Quiz mode vs Guide mode vs Sandbox
+            if (state.activeTab === 'guide' && (state.currentStep === 1 || state.currentStep === 2)) {
+                anchorPoint.style.display = 'block';
+                anchorMathLabel.style.display = 'block';
+                variablePoint.style.display = 'none';
+                variableMathLabel.style.display = 'none';
+                slopeTriangle.style.display = 'none';
+                overlayRun.style.display = 'none';
+                overlayRise.style.display = 'none';
+            } else {
+                anchorPoint.style.display = 'block';
+                anchorMathLabel.style.display = 'block';
+                variablePoint.style.display = 'block';
+                variableMathLabel.style.display = 'block';
+                slopeTriangle.style.display = 'block';
+                overlayRun.style.display = 'block';
+                overlayRise.style.display = 'block';
+
+                variablePoint.setAttribute("cx", sX);
+                variablePoint.setAttribute("cy", sY);
+                
+                // Dynamically position the Variable label offset away from line
+                let vX = sX >= sX1 ? sX + 15 : sX - labelWidth - 15;
+                let vY = sY >= sY1 ? sY + 15 : sY - labelHeight - 15;
+                
+                // Clamp within SVG boundaries
+                vX = Math.max(5, Math.min(svgSize - labelWidth - 5, vX));
+                vY = Math.max(5, Math.min(svgSize - labelHeight - 5, vY));
+                
+                variableMathLabel.setAttribute("x", vX);
+                variableMathLabel.setAttribute("y", vY);
+
+                katex.render(`P(${fmt(state.x)}, ${fmt(state.y)})`, document.getElementById('math-variable-text'), { throwOnError: false });
+                katex.render(`P(${fmt(state.x)}, ${fmt(state.y)})`, document.getElementById('label-math-p'), { throwOnError: false });
+
+                // 4. Update "Rise / Run" Projection Triangles
+                const runLine = document.getElementById('triangle-run');
+                const riseLine = document.getElementById('triangle-rise');
+                
+                // Horizontal projection
+                runLine.setAttribute("x1", sX1);
+                runLine.setAttribute("y1", sY1);
+                runLine.setAttribute("x2", sX);
+                runLine.setAttribute("y2", sY1);
+
+                // Vertical projection
+                riseLine.setAttribute("x1", sX);
+                riseLine.setAttribute("y1", sY1);
+                riseLine.setAttribute("x2", sX);
+                riseLine.setAttribute("y2", sY);
+
+                // Center coordinates overlays cleanly away from the triangle's interior
+                const dx = state.x - state.x1;
+                const dy = state.y - state.y1;
+
+                // Position Run label strictly outside the dotted geometry (above or below)
+                let runIsAbove = sY >= sY1;
+                overlayRun.style.left = `${(sX1 + sX) / 2}px`;
+                overlayRun.style.top = `${runIsAbove ? sY1 - 12 : sY1 + 12}px`;
+                overlayRun.style.transform = `translate(-50%, ${runIsAbove ? '-100%' : '0'})`;
+                katex.render(`\\Delta x = ${fmt(dx)}`, overlayRun, { throwOnError: false });
+
+                // Position Rise label strictly outside the dotted geometry (left or right)
+                let riseIsRight = sX >= sX1;
+                overlayRise.style.left = `${riseIsRight ? sX + 12 : sX - 12}px`;
+                overlayRise.style.top = `${(sY1 + sY) / 2}px`;
+                overlayRise.style.transform = `translate(${riseIsRight ? '0' : '-100%'}, -50%)`;
+                katex.render(`\\Delta y = ${fmt(dy)}`, overlayRise, { throwOnError: false });
+            }
+
+            // Render current slope values
+            katex.render(`m = ${fmt(state.m, 2)}`, document.getElementById('label-math-slope-val'), { throwOnError: false });
+
+            // 5. Update Dynamic Formulations
+            updateMathCard();
+        }
+
+        // Generates clean equations and renders via KaTeX
+        function updateMathCard() {
+            const mVal = state.m;
+            const x1Val = state.x1;
+            const y1Val = state.y1;
+
+            // 1. Point-Slope Form: y - y1 = m(x - x1)
+            let yPart = "";
+            if (y1Val === 0) {
+                yPart = "y";
+            } else if (y1Val < 0) {
+                yPart = `y + ${fmt(Math.abs(y1Val))}`;
+            } else {
+                yPart = `y - ${fmt(y1Val)}`;
+            }
+
+            let xPart = "";
+            if (x1Val === 0) {
+                xPart = "x";
+            } else if (x1Val < 0) {
+                xPart = `x + ${fmt(Math.abs(x1Val))}`;
+            } else {
+                xPart = `x - ${fmt(x1Val)}`;
+            }
+
+            let mStr = "";
+            if (mVal === 1) {
+                mStr = "";
+            } else if (mVal === -1) {
+                mStr = "-";
+            } else if (mVal === 0) {
+                mStr = "0";
+            } else {
+                mStr = fmt(mVal, 2);
+            }
+
+            let pointSlopeLatex = "";
+            if (mVal === 0) {
+                pointSlopeLatex = `${yPart} = 0`;
+            } else if (x1Val === 0) {
+                pointSlopeLatex = `${yPart} = ${mStr}x`;
+            } else {
+                pointSlopeLatex = `${yPart} = ${mStr}(${xPart})`;
+            }
+            katex.render(pointSlopeLatex, document.getElementById('equation-point-slope'), { throwOnError: false });
+
+            // 2. y = mx + c Form
+            const cVal = y1Val - (mVal * x1Val);
+            let slopeIntStr = "";
+            if (mVal === 0) {
+                slopeIntStr = `y = ${fmt(cVal)}`;
+            } else {
+                let mSignStr = mVal === 1 ? "x" : (mVal === -1 ? "-x" : `${fmt(mVal, 2)}x`);
+                let cStr = "";
+                if (cVal > 0) {
+                    cStr = ` + ${fmt(cVal)}`;
+                } else if (cVal < 0) {
+                    cStr = ` - ${fmt(Math.abs(cVal))}`;
+                }
+                slopeIntStr = `y = ${mSignStr}${cStr}`;
+            }
+            katex.render(slopeIntStr, document.getElementById('equation-slope-intercept'), { throwOnError: false });
+
+            // 3. General Form: Ax + By + C = 0
+            let A = mVal;
+            let B = -1;
+            let C = y1Val - (mVal * x1Val);
+
+            // Convention: keep the leading coefficient (A, or B if A is 0) positive
+            if (A < 0) {
+                A = -A;
+                B = -B;
+                C = -C;
+            } else if (A === 0 && B < 0) {
+                B = -B;
+                C = -C;
+            }
+
+            let aStr = A === 0 ? "" : (A === 1 ? "x" : `${fmt(A, 2)}x`);
+            let bStr = B === 1 ? (A === 0 ? "y" : " + y") : " - y";
+            let cStr = C === 0 ? "" : (C > 0 ? ` + ${fmt(C)}` : ` - ${fmt(-C)}`);
+
+            let generalLatex = `${aStr}${bStr}${cStr} = 0`;
+            katex.render(generalLatex, document.getElementById('equation-general'), { throwOnError: false });
+
+            // 4. Update Guided Step Equations if viewing Tour Mode
+            if (state.activeTab === 'guide') {
+                const step4MathContainer = document.getElementById('math-step-4');
+                const step5MathContainer = document.getElementById('math-step-5');
+                
+                if (state.currentStep === 4) {
+                    const step4Latex = `\\displaystyle \\begin{aligned} m &= \\frac{y - y_1}{x - x_1} \\\\[0.5em] ${fmt(state.m, 2)} &= \\frac{y - (${fmt(state.y1)})}{x - (${fmt(state.x1)})} \\end{aligned}`;
+                    katex.render(step4Latex, step4MathContainer, { throwOnError: false });
+                } else if (state.currentStep === 5) {
+                    const step5Latex = `\\displaystyle \\begin{aligned} y - y_1 &= m(x - x_1) \\\\[0.5em] y - (${fmt(state.y1)}) &= ${mStr}(x - (${fmt(state.x1)})) \\end{aligned}`;
+                    katex.render(step5Latex, step5MathContainer, { throwOnError: false });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
