@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Point-Slope Form: Interactive Visualizer</title>
+    <title>Point-Slope & Slope-Intercept Form Explorer</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- KaTeX for beautiful math equations -->
@@ -49,8 +49,8 @@
                 <i data-lucide="line-chart" class="w-6 h-6"></i>
             </div>
             <div>
-                <h1 class="text-xl font-bold tracking-tight text-slate-950">Point-Slope Form Explorer</h1>
-                <p class="text-xs text-slate-500">Master the algebraic geometry of straight lines through real-time manipulation</p>
+                <h1 class="text-xl font-bold tracking-tight text-slate-950">Linear Equations Explorer</h1>
+                <p class="text-xs text-slate-500">Master Point-Slope and Slope-Intercept forms through real-time geometry</p>
             </div>
         </div>
         <div class="flex items-center gap-2 text-xs bg-slate-100 rounded-full px-3 py-1.5 border border-slate-200">
@@ -66,15 +66,18 @@
         <div class="lg:col-span-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-1 max-h-[calc(100vh-140px)]">
             
             <!-- Mode / Guide Selector -->
-            <div class="bg-slate-200/60 border border-slate-300/40 rounded-xl p-1 flex gap-1 shadow-inner">
-                <button id="tab-sandbox" onclick="switchTab('sandbox')" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm">
-                    <i data-lucide="sliders" class="w-4 h-4"></i> Sandbox Mode
+            <div class="bg-slate-200/60 border border-slate-300/40 rounded-xl p-1 grid grid-cols-2 xl:grid-cols-4 gap-1 shadow-inner">
+                <button id="tab-sandbox" onclick="switchTab('sandbox')" class="py-2 px-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 bg-white text-indigo-600 shadow-sm">
+                    <i data-lucide="sliders" class="w-4 h-4"></i> Sandbox
                 </button>
-                <button id="tab-guide" onclick="switchTab('guide')" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50">
-                    <i data-lucide="book-open" class="w-4 h-4"></i> Guided Tour
+                <button id="tab-guide" onclick="switchTab('guide')" class="py-2 px-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/50">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Tour
                 </button>
-                <button id="tab-quiz" onclick="switchTab('quiz')" class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50">
-                    <i data-lucide="brain-circuit" class="w-4 h-4"></i> Quiz Mode
+                <button id="tab-quiz1" onclick="switchTab('quiz1')" class="py-2 px-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/50">
+                    <i data-lucide="brain-circuit" class="w-4 h-4"></i> Quiz 1
+                </button>
+                <button id="tab-quiz2" onclick="switchTab('quiz2')" class="py-2 px-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/50">
+                    <i data-lucide="brain-circuit" class="w-4 h-4"></i> Quiz 2
                 </button>
             </div>
 
@@ -89,7 +92,7 @@
                         <button onclick="prevStep()" id="prev-btn" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none transition-all">
                             <i data-lucide="chevron-left" class="w-4 h-4"></i>
                         </button>
-                        <span id="step-indicator" class="text-xs font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md flex items-center">Step 1/5</span>
+                        <span id="step-indicator" class="text-xs font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md flex items-center">Step 1/6</span>
                         <button onclick="nextStep()" id="next-btn" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none transition-all">
                             <i data-lucide="chevron-right" class="w-4 h-4"></i>
                         </button>
@@ -148,6 +151,15 @@
                         </p>
                         <div class="py-3 bg-indigo-50 border border-indigo-100 rounded-xl flex justify-center text-lg font-bold" id="math-step-5"></div>
                     </div>
+
+                    <!-- Step 6 Content -->
+                    <div id="step-6-content" class="step-content hidden space-y-2">
+                        <h4 class="text-base font-semibold text-slate-900">6. Deriving Slope-Intercept Form</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            By distributing the slope and isolating $y$, we transform the Point-Slope form into the widely used **Slope-Intercept form**. Here, $c$ represents the y-intercept.
+                        </p>
+                        <div class="py-3 bg-amber-50 border border-amber-100 rounded-xl flex justify-center text-lg font-bold" id="math-step-6"></div>
+                    </div>
                 </div>
             </div>
 
@@ -156,7 +168,7 @@
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <h3 class="font-bold text-lg text-indigo-600 flex items-center gap-2">
                         <i data-lucide="brain-circuit" class="w-5 h-5"></i>
-                        Knowledge Check
+                        <span id="quiz-title-text">Knowledge Check</span>
                     </h3>
                     <div id="quiz-header-stats" class="hidden flex gap-3 text-sm font-bold text-slate-700">
                         <span class="bg-indigo-50 border border-indigo-100 px-2 py-1 rounded">Player: <span id="quiz-player-name" class="text-indigo-600"></span></span>
@@ -173,19 +185,39 @@
 
                 <!-- Active Quiz Screen -->
                 <div id="quiz-active" class="hidden space-y-4">
-                    <p class="text-sm text-slate-700 font-medium">Find the Point-Slope equation for the line shown on the graph.</p>
-                    <p class="text-xs text-slate-500 mb-2 flex flex-wrap items-center gap-1">
-                        Identify the slope <span id="quiz-desc-m" class="text-indigo-600 font-bold"></span> and any valid point <span id="quiz-desc-p1" class="text-indigo-600 font-bold"></span> on the line. Enter them below to form <span id="quiz-math-hint" class="font-mono bg-slate-100 px-2 py-0.5 rounded shadow-sm text-indigo-700"></span>.
-                    </p>
+                    <!-- Dynamic Descriptions for Quiz 1 vs Quiz 2 -->
+                    <div id="quiz1-desc" class="hidden">
+                        <p class="text-sm text-slate-700 font-medium">Find the Point-Slope equation for the line shown on the graph.</p>
+                        <p class="text-xs text-slate-500 mb-2 flex flex-wrap items-center gap-1">
+                            Identify the slope <span id="quiz1-desc-m" class="text-indigo-600 font-bold"></span> and any valid point <span id="quiz1-desc-p1" class="text-indigo-600 font-bold"></span> on the line. Enter them below to form <span id="quiz1-math-hint" class="font-mono bg-slate-100 px-2 py-0.5 rounded shadow-sm text-indigo-700"></span>.
+                        </p>
+                    </div>
                     
-                    <div class="flex flex-wrap items-center justify-center gap-1.5 text-sm md:text-lg font-mono bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <span id="quiz-eq-part1" class="font-bold text-slate-800"></span>
-                        <input type="number" id="quiz-input-y1" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="y₁">
-                        <span id="quiz-eq-part2" class="font-bold text-slate-800"></span>
-                        <input type="number" id="quiz-input-m" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="m">
-                        <span id="quiz-eq-part3" class="font-bold text-slate-800"></span>
-                        <input type="number" id="quiz-input-x1" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="x₁">
-                        <span id="quiz-eq-part4" class="font-bold text-slate-800"></span>
+                    <div id="quiz2-desc" class="hidden">
+                        <p class="text-sm text-slate-700 font-medium">Find the Slope-Intercept equation for the line shown on the graph.</p>
+                        <p class="text-xs text-slate-500 mb-2 flex flex-wrap items-center gap-1">
+                            Identify the slope <span id="quiz2-desc-m" class="text-indigo-600 font-bold"></span> and the y-intercept <span id="quiz2-desc-c" class="text-indigo-600 font-bold"></span> of the line. Enter them below to form <span id="quiz2-math-hint" class="font-mono bg-slate-100 px-2 py-0.5 rounded shadow-sm text-indigo-700"></span>.
+                        </p>
+                    </div>
+                    
+                    <!-- Quiz 1 Inputs (Point-Slope) -->
+                    <div id="quiz1-inputs" class="hidden flex flex-wrap items-center justify-center gap-1.5 text-sm md:text-lg font-mono bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span id="quiz1-eq-part1" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz1-input-y1" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="y₁">
+                        <span id="quiz1-eq-part2" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz1-input-m" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="m">
+                        <span id="quiz1-eq-part3" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz1-input-x1" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="x₁">
+                        <span id="quiz1-eq-part4" class="font-bold text-slate-800"></span>
+                    </div>
+
+                    <!-- Quiz 2 Inputs (Slope-Intercept) -->
+                    <div id="quiz2-inputs" class="hidden flex flex-wrap items-center justify-center gap-1.5 text-sm md:text-lg font-mono bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span id="quiz2-eq-part1" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz2-input-m" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="m">
+                        <span id="quiz2-eq-part2" class="font-bold text-slate-800"></span>
+                        <input type="number" id="quiz2-input-c" class="w-16 px-1 py-1 border border-slate-300 rounded text-center focus:outline-none focus:border-indigo-500" placeholder="c">
+                        <span id="quiz2-eq-part3" class="font-bold text-slate-800"></span>
                     </div>
                     
                     <div class="flex justify-between items-center mt-4">
@@ -400,7 +432,7 @@
         let state = {
             activeTab: 'sandbox',
             currentStep: 1,
-            maxSteps: 5,
+            maxSteps: 6, // Updated to 6 steps for slope-intercept
             x1: 2,
             y1: 3,
             m: 1.0,
@@ -412,7 +444,8 @@
             quizName: '',
             quizScore: 0,
             quizAttempted: 0,
-            quizActive: false
+            quizActive: false,
+            quizMode: null // Tracks which quiz is currently locked in
         };
 
         // Graph Math Settings
@@ -450,30 +483,29 @@
         
         // Setup Keyboard Input Listeners (Enter key support)
         function setupKeyboardListeners() {
-            // Setup quiz name submit
-            const nameInput = document.getElementById('quiz-name-input');
-            nameInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') startQuiz();
-            });
-
-            // Setup equation input submit
-            const quizInputs = ['quiz-input-y1', 'quiz-input-m', 'quiz-input-x1'];
-            quizInputs.forEach(id => {
-                document.getElementById(id).addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        if (!document.getElementById('quiz-submit-btn').classList.contains('hidden')) {
-                            submitQuiz();
-                        }
-                    }
-                });
-            });
-            
-            // Advance to next question quickly with enter when feedback is showing
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && state.activeTab === 'quiz' && state.quizActive) {
-                    const nextBtn = document.getElementById('quiz-next-btn');
-                    if (!nextBtn.classList.contains('hidden')) {
-                        nextQuizQuestion();
+                if (e.key === 'Enter') {
+                    // Prevent default form submissions if triggered inside an input
+                    if (e.target.tagName === 'INPUT') {
+                        e.preventDefault();
+                    }
+
+                    // 1. Setup Phase: Start Quiz
+                    if (!state.quizActive && !document.getElementById('quiz-setup').classList.contains('hidden')) {
+                        startQuiz();
+                        return;
+                    }
+                    
+                    // 2. Active Phase: Check Answer or Next Question
+                    if (state.quizActive && state.activeTab.startsWith('quiz')) {
+                        const submitBtn = document.getElementById('quiz-submit-btn');
+                        const nextBtn = document.getElementById('quiz-next-btn');
+                        
+                        if (!submitBtn.classList.contains('hidden')) {
+                            submitQuiz();
+                        } else if (!nextBtn.classList.contains('hidden')) {
+                            nextQuizQuestion();
+                        }
                     }
                 }
             });
@@ -494,15 +526,24 @@
             katex.render("P(x, y)", document.getElementById('guide-p-math'), { throwOnError: false });
             katex.render("m", document.getElementById('guide-step-4-m'), { throwOnError: false });
             
-            // Quiz Static Formulas
-            katex.render("m", document.getElementById('quiz-desc-m'), { throwOnError: false });
-            katex.render("(x_1, y_1)", document.getElementById('quiz-desc-p1'), { throwOnError: false });
-            katex.render("y - y_1 = m(x - x_1)", document.getElementById('quiz-math-hint'), { throwOnError: false });
+            // Quiz 1 Static Formulas
+            katex.render("m", document.getElementById('quiz1-desc-m'), { throwOnError: false });
+            katex.render("(x_1, y_1)", document.getElementById('quiz1-desc-p1'), { throwOnError: false });
+            katex.render("y - y_1 = m(x - x_1)", document.getElementById('quiz1-math-hint'), { throwOnError: false });
             
-            katex.render("y - (", document.getElementById('quiz-eq-part1'), { throwOnError: false });
-            katex.render(") = (", document.getElementById('quiz-eq-part2'), { throwOnError: false });
-            katex.render(") (x - (", document.getElementById('quiz-eq-part3'), { throwOnError: false });
-            katex.render("))", document.getElementById('quiz-eq-part4'), { throwOnError: false });
+            katex.render("y - (", document.getElementById('quiz1-eq-part1'), { throwOnError: false });
+            katex.render(") = (", document.getElementById('quiz1-eq-part2'), { throwOnError: false });
+            katex.render(") (x - (", document.getElementById('quiz1-eq-part3'), { throwOnError: false });
+            katex.render("))", document.getElementById('quiz1-eq-part4'), { throwOnError: false });
+
+            // Quiz 2 Static Formulas
+            katex.render("m", document.getElementById('quiz2-desc-m'), { throwOnError: false });
+            katex.render("c", document.getElementById('quiz2-desc-c'), { throwOnError: false });
+            katex.render("y = mx + c", document.getElementById('quiz2-math-hint'), { throwOnError: false });
+
+            katex.render("y = (", document.getElementById('quiz2-eq-part1'), { throwOnError: false });
+            katex.render(") x + (", document.getElementById('quiz2-eq-part2'), { throwOnError: false });
+            katex.render(")", document.getElementById('quiz2-eq-part3'), { throwOnError: false });
 
             // Legends
             katex.render("\\text{Run: } \\Delta x = x - x_1", document.getElementById('legend-run-text'), { throwOnError: false });
@@ -563,10 +604,22 @@
 
         // Handle tabs transitions
         function switchTab(tabId) {
+            // Prevent switching to the opposite quiz if one is already in progress
+            if (state.quizActive && tabId.startsWith('quiz') && tabId !== state.quizMode) {
+                return;
+            }
+
+            // Unlock quizzes and reset session state if navigating back to sandbox or tour
+            if (!tabId.startsWith('quiz')) {
+                state.quizActive = false;
+                state.quizMode = null;
+            }
+
             state.activeTab = tabId;
             const sandboxBtn = document.getElementById('tab-sandbox');
             const guideBtn = document.getElementById('tab-guide');
-            const quizBtn = document.getElementById('tab-quiz');
+            const quiz1Btn = document.getElementById('tab-quiz1');
+            const quiz2Btn = document.getElementById('tab-quiz2');
             
             const guidePanel = document.getElementById('guide-panel');
             const quizPanel = document.getElementById('quiz-panel');
@@ -574,12 +627,20 @@
             const equationsPanel = document.getElementById('equations-panel');
             const metadataHeader = document.getElementById('graph-metadata-header');
 
-            const inactiveClass = "flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50";
-            const activeClass = "flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm";
+            const inactiveClass = "py-2 px-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/50";
+            const activeClass = "py-2 px-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 bg-white text-indigo-600 shadow-sm";
+            const disabledClass = "py-2 px-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-1.5 text-slate-400 bg-slate-100 opacity-50 cursor-not-allowed";
 
             sandboxBtn.className = inactiveClass;
             guideBtn.className = inactiveClass;
-            quizBtn.className = inactiveClass;
+            quiz1Btn.className = inactiveClass;
+            quiz2Btn.className = inactiveClass;
+
+            // Apply disabled styling to the locked out quiz tab
+            if (state.quizActive) {
+                if (state.quizMode === 'quiz1') quiz2Btn.className = disabledClass;
+                if (state.quizMode === 'quiz2') quiz1Btn.className = disabledClass;
+            }
             
             guidePanel.classList.add('hidden');
             quizPanel.classList.add('hidden');
@@ -600,14 +661,21 @@
                 guideBtn.className = activeClass;
                 guidePanel.classList.remove('hidden');
                 setStep(1);
-            } else if (tabId === 'quiz') {
-                quizBtn.className = activeClass;
+            } else if (tabId === 'quiz1' || tabId === 'quiz2') {
+                if (tabId === 'quiz1') quiz1Btn.className = activeClass;
+                if (tabId === 'quiz2') quiz2Btn.className = activeClass;
+                
+                document.getElementById('quiz-title-text').textContent = tabId === 'quiz1' ? 'Quiz 1: Point-Slope' : 'Quiz 2: Slope-Intercept';
+
                 quizPanel.classList.remove('hidden');
                 sandboxControls.classList.add('hidden');
                 equationsPanel.classList.add('hidden');
                 metadataHeader.classList.add('hidden');
                 
-                if (!state.quizActive) {
+                if (state.quizActive) {
+                    // Update input visibility immediately if quiz is already running
+                    nextQuizQuestion();
+                } else {
                     document.getElementById('quiz-setup').classList.remove('hidden');
                     document.getElementById('quiz-active').classList.add('hidden');
                     document.getElementById('quiz-header-stats').classList.add('hidden');
@@ -656,6 +724,10 @@
                     state.x = 6; state.y = 9;
                     break;
                 case 5: // Point Slope form finalized
+                    state.x1 = 2; state.y1 = 3; state.m = 1.5;
+                    state.x = 6; state.y = 9;
+                    break;
+                case 6: // Slope-Intercept form derivation
                     state.x1 = 2; state.y1 = 3; state.m = 1.5;
                     state.x = 6; state.y = 9;
                     break;
@@ -726,21 +798,21 @@
 
             // Pointer Event Handlers
             anchorGroup.addEventListener('pointerdown', (e) => {
-                if (state.activeTab === 'quiz') return;
+                if (state.activeTab.startsWith('quiz')) return;
                 e.stopPropagation();
                 state.isDraggingAnchor = true;
                 anchorGroup.setPointerCapture(e.pointerId);
             });
 
             variableGroup.addEventListener('pointerdown', (e) => {
-                if (state.activeTab === 'quiz') return;
+                if (state.activeTab.startsWith('quiz')) return;
                 e.stopPropagation();
                 state.isDraggingVariable = true;
                 variableGroup.setPointerCapture(e.pointerId);
             });
 
             svg.addEventListener('pointermove', (e) => {
-                if (state.activeTab === 'quiz') return;
+                if (state.activeTab.startsWith('quiz')) return;
                 if (!state.isDraggingAnchor && !state.isDraggingVariable) return;
                 
                 const rect = svg.getBoundingClientRect();
@@ -810,18 +882,18 @@
         // --- QUIZ LOGIC ---
         const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztY-Z1ZlZUzhZanRVbXpqIZLUlf0_xkEP208aJd0D0BY13eIY4bUeWjf6q_BT2BXU/exec"; 
 
-        async function syncQuizData(name, score, attempted) {
+        async function syncQuizData(name, score, attempted, mode) {
             if (!GOOGLE_APPS_SCRIPT_URL) return; // Skip if URL is not configured
             
             try {
                 await fetch(GOOGLE_APPS_SCRIPT_URL, {
                     method: 'POST',
-                    // Using text/plain prevents complex CORS preflight issues while passing the JSON string safely
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
                         name: name,
                         score: score,
-                        attempted: attempted
+                        attempted: attempted,
+                        mode: mode
                     })
                 });
             } catch (error) {
@@ -850,10 +922,19 @@
             state.quizScore = 0;
             state.quizAttempted = 0;
             state.quizActive = true;
+            state.quizMode = state.activeTab; // Lock in the active quiz mode
             
             document.getElementById('quiz-player-name').textContent = state.quizName;
             document.getElementById('quiz-score').textContent = `${state.quizScore}/${state.quizAttempted}`;
             
+            // Grey out the opposite quiz button immediately
+            const disabledClass = "py-2 px-2 rounded-lg text-xs md:text-sm font-semibold flex items-center justify-center gap-1.5 text-slate-400 bg-slate-100 opacity-50 cursor-not-allowed";
+            if (state.quizMode === 'quiz1') {
+                document.getElementById('tab-quiz2').className = disabledClass;
+            } else if (state.quizMode === 'quiz2') {
+                document.getElementById('tab-quiz1').className = disabledClass;
+            }
+
             document.getElementById('quiz-setup').classList.add('hidden');
             document.getElementById('quiz-active').classList.remove('hidden');
             document.getElementById('quiz-header-stats').classList.remove('hidden');
@@ -864,42 +945,88 @@
         function nextQuizQuestion() {
             const slopes = [-3, -2, -1, -0.5, 0.5, 1, 2, 3];
             state.m = slopes[Math.floor(Math.random() * slopes.length)];
-            state.x1 = Math.floor(Math.random() * 10) - 5;
-            state.y1 = Math.floor(Math.random() * 10) - 5;
+            
+            if (state.activeTab === 'quiz2') {
+                // Quiz 2: Anchor is fixed on the y-axis (y-intercept)
+                state.x1 = 0;
+                state.y1 = Math.floor(Math.random() * 10) - 5;
+            } else {
+                // Quiz 1: Point-Slope arbitrary point
+                state.x1 = Math.floor(Math.random() * 10) - 5;
+                state.y1 = Math.floor(Math.random() * 10) - 5;
+            }
             
             state.x = state.x1 + 2;
             state.y = state.y1 + (state.m * 2);
             
-            document.getElementById('quiz-input-m').value = '';
-            document.getElementById('quiz-input-x1').value = '';
-            document.getElementById('quiz-input-y1').value = '';
+            // Clear inputs based on active mode
+            if (state.activeTab === 'quiz1') {
+                document.getElementById('quiz1-input-m').value = '';
+                document.getElementById('quiz1-input-x1').value = '';
+                document.getElementById('quiz1-input-y1').value = '';
+                
+                document.getElementById('quiz1-desc').classList.remove('hidden');
+                document.getElementById('quiz1-inputs').classList.remove('hidden');
+                document.getElementById('quiz2-desc').classList.add('hidden');
+                document.getElementById('quiz2-inputs').classList.add('hidden');
+                setTimeout(() => document.getElementById('quiz1-input-y1').focus(), 100);
+            } else if (state.activeTab === 'quiz2') {
+                document.getElementById('quiz2-input-m').value = '';
+                document.getElementById('quiz2-input-c').value = '';
+                
+                document.getElementById('quiz2-desc').classList.remove('hidden');
+                document.getElementById('quiz2-inputs').classList.remove('hidden');
+                document.getElementById('quiz1-desc').classList.add('hidden');
+                document.getElementById('quiz1-inputs').classList.add('hidden');
+                setTimeout(() => document.getElementById('quiz2-input-m').focus(), 100);
+            }
+            
             document.getElementById('quiz-feedback').innerHTML = '';
             document.getElementById('quiz-submit-btn').classList.remove('hidden');
             document.getElementById('quiz-next-btn').classList.add('hidden');
-            
-            // Autofocus the first answer box
-            setTimeout(() => document.getElementById('quiz-input-y1').focus(), 100);
             
             update();
         }
 
         function submitQuiz() {
-            const mInput = parseFloat(document.getElementById('quiz-input-m').value);
-            const x1Input = parseFloat(document.getElementById('quiz-input-x1').value);
-            const y1Input = parseFloat(document.getElementById('quiz-input-y1').value);
-            
-            if (isNaN(mInput) || isNaN(x1Input) || isNaN(y1Input)) {
-                document.getElementById('quiz-feedback').innerHTML = '<span class="text-amber-600">Please fill in all 3 blanks!</span>';
-                return;
+            let isCorrect = false;
+            let ansLatexStr = "";
+
+            if (state.activeTab === 'quiz1') {
+                const mInput = parseFloat(document.getElementById('quiz1-input-m').value);
+                const x1Input = parseFloat(document.getElementById('quiz1-input-x1').value);
+                const y1Input = parseFloat(document.getElementById('quiz1-input-y1').value);
+                
+                if (isNaN(mInput) || isNaN(x1Input) || isNaN(y1Input)) {
+                    document.getElementById('quiz-feedback').innerHTML = '<span class="text-amber-600">Please fill in all 3 blanks!</span>';
+                    return;
+                }
+                
+                const slopeCorrect = Math.abs(mInput - state.m) < 0.001;
+                const pointOnLine = Math.abs((y1Input - state.y1) - (state.m * (x1Input - state.x1))) < 0.001;
+                
+                isCorrect = slopeCorrect && pointOnLine;
+                ansLatexStr = `y - (${fmt(state.y1)}) = ${fmt(state.m)}(x - (${fmt(state.x1)}))`;
+                
+            } else if (state.activeTab === 'quiz2') {
+                const mInput = parseFloat(document.getElementById('quiz2-input-m').value);
+                const cInput = parseFloat(document.getElementById('quiz2-input-c').value);
+                
+                if (isNaN(mInput) || isNaN(cInput)) {
+                    document.getElementById('quiz-feedback').innerHTML = '<span class="text-amber-600">Please fill in all blanks!</span>';
+                    return;
+                }
+                
+                const slopeCorrect = Math.abs(mInput - state.m) < 0.001;
+                const interceptCorrect = Math.abs(cInput - state.y1) < 0.001; // y1 is the intercept since x1=0
+                
+                isCorrect = slopeCorrect && interceptCorrect;
+                ansLatexStr = `y = (${fmt(state.m)}) x + (${fmt(state.y1)})`;
             }
             
             state.quizAttempted += 1;
             
-            const slopeCorrect = Math.abs(mInput - state.m) < 0.001;
-            // The chosen point (x1, y1) is correct if it belongs to the target line
-            const pointOnLine = Math.abs((y1Input - state.y1) - (state.m * (x1Input - state.x1))) < 0.001;
-            
-            if (slopeCorrect && pointOnLine) {
+            if (isCorrect) {
                 state.quizScore += 1;
                 document.getElementById('quiz-score').textContent = `${state.quizScore}/${state.quizAttempted}`;
                 document.getElementById('quiz-feedback').innerHTML = '🎉 <span class="text-emerald-600">Correct! Next question in 3s...</span>';
@@ -907,19 +1034,16 @@
                 document.getElementById('quiz-submit-btn').classList.add('hidden');
                 document.getElementById('quiz-next-btn').classList.add('hidden');
                 
-                // Sync successful attempt to Google Sheets
-                syncQuizData(state.quizName, state.quizScore, state.quizAttempted);
+                syncQuizData(state.quizName, state.quizScore, state.quizAttempted, state.quizMode);
 
-                // Automatically advance after 3 seconds
                 setTimeout(() => {
-                    if (state.activeTab === 'quiz' && state.quizActive) {
+                    if (state.activeTab.startsWith('quiz') && state.quizActive) {
                         nextQuizQuestion();
                     }
                 }, 3000);
             } else {
                 document.getElementById('quiz-score').textContent = `${state.quizScore}/${state.quizAttempted}`;
-                const correctEqLatex = `y - (${fmt(state.y1)}) = ${fmt(state.m)}(x - (${fmt(state.x1)}))`;
-                const ansLatex = katex.renderToString(correctEqLatex, { throwOnError: false });
+                const ansLatex = katex.renderToString(ansLatexStr, { throwOnError: false });
                 
                 let errorMsg = `❌ <span class="text-red-600">Incorrect. A valid answer is:</span><br/><span class="inline-block mt-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded font-normal shadow-sm">${ansLatex}</span>`;
                 document.getElementById('quiz-feedback').innerHTML = errorMsg;
@@ -927,8 +1051,7 @@
                 document.getElementById('quiz-submit-btn').classList.add('hidden');
                 document.getElementById('quiz-next-btn').classList.remove('hidden');
 
-                // Sync failed attempt to Google Sheets
-                syncQuizData(state.quizName, state.quizScore, state.quizAttempted);
+                syncQuizData(state.quizName, state.quizScore, state.quizAttempted, state.quizMode);
             }
         }
         // --- END QUIZ LOGIC ---
@@ -997,9 +1120,14 @@
             anchorMathLabel.setAttribute("x", aX);
             anchorMathLabel.setAttribute("y", aY);
 
-            // Render LaTeX coordinate in visual tooltip
-            katex.render(`P_1(${fmt(state.x1)}, ${fmt(state.y1)})`, document.getElementById('math-anchor-text'), { throwOnError: false });
-            katex.render(`P_1(${fmt(state.x1)}, ${fmt(state.y1)})`, document.getElementById('label-math-p1'), { throwOnError: false });
+            // Conditional rendering for the Anchor Label (Point P vs Y-Intercept c)
+            if (state.activeTab === 'quiz2') {
+                katex.render(`c = ${fmt(state.y1)}`, document.getElementById('math-anchor-text'), { throwOnError: false });
+                katex.render(`c = ${fmt(state.y1)}`, document.getElementById('label-math-p1'), { throwOnError: false });
+            } else {
+                katex.render(`P_1(${fmt(state.x1)}, ${fmt(state.y1)})`, document.getElementById('math-anchor-text'), { throwOnError: false });
+                katex.render(`P_1(${fmt(state.x1)}, ${fmt(state.y1)})`, document.getElementById('label-math-p1'), { throwOnError: false });
+            }
 
             // 3. Position Variable Node P(x, y)
             const variablePoint = document.getElementById('variable-point');
@@ -1174,6 +1302,7 @@
             if (state.activeTab === 'guide') {
                 const step4MathContainer = document.getElementById('math-step-4');
                 const step5MathContainer = document.getElementById('math-step-5');
+                const step6MathContainer = document.getElementById('math-step-6');
                 
                 if (state.currentStep === 4) {
                     const step4Latex = `\\displaystyle \\begin{aligned} m &= \\frac{y - y_1}{x - x_1} \\\\[0.5em] ${fmt(state.m, 2)} &= \\frac{y - (${fmt(state.y1)})}{x - (${fmt(state.x1)})} \\end{aligned}`;
@@ -1181,6 +1310,10 @@
                 } else if (state.currentStep === 5) {
                     const step5Latex = `\\displaystyle \\begin{aligned} y - y_1 &= m(x - x_1) \\\\[0.5em] y - (${fmt(state.y1)}) &= ${mStr}(x - (${fmt(state.x1)})) \\end{aligned}`;
                     katex.render(step5Latex, step5MathContainer, { throwOnError: false });
+                } else if (state.currentStep === 6) {
+                    // Demonstrate progression to slope-intercept form smoothly using the generated string 
+                    const step6Latex = `\\displaystyle \\begin{aligned} y - (${fmt(state.y1)}) &= ${mStr}(x - (${fmt(state.x1)})) \\\\[0.5em] ${slopeIntStr} \\end{aligned}`;
+                    katex.render(step6Latex, step6MathContainer, { throwOnError: false });
                 }
             }
         }
